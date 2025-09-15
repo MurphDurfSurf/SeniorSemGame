@@ -1,0 +1,26 @@
+# Unity
+[Ll]ibrary/
+[Tt]emp/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Pp]ackages/com.unity.package-manager/  
+MemoryCaptures/
+Obj/
+
+# Visual Studio / Rider
+.vscode/
+.idea/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+
+# OS-specific
+.DS_Store
+Thumbs.db
