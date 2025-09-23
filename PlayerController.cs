@@ -15,7 +15,7 @@ public class SimpleController : MonoBehaviour {
     public float gravity = -30f;
 
     [Header("Crouch")]
-    public KeyCode crouchKey = KeyCode.LeftControl;
+    public KeyCode crouchKey = KeyCode.C;
     public float crouchHeight = 1.2f;        // hitbox height when crouched
     public float crouchCamY = 1.0f;          // cameraHolder local Y when crouched
     public float standCamY = 1.6f;           // cameraHolder local Y when standing
@@ -32,6 +32,7 @@ public class SimpleController : MonoBehaviour {
         cc = GetComponent<CharacterController>();
         Cursor.lockState = CursorLockMode.Locked;
 
+        crouchKey = KeyCode.C;
         standHeight = cc.height;
         standCenter = cc.center;
         cameraHolder.localPosition = new Vector3(
@@ -62,10 +63,6 @@ public class SimpleController : MonoBehaviour {
         float speed = moveSpeed * (Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : 1f);
         Vector3 horizontal = inputDir * speed;
 
-        // -- Sprinting --
-        /*if (Input.GetKey(KeyCode.LeftShift))
-            cc.Move(move * sprintSpeed * Time.deltaTime);*/
-
         // --- Ground snap using built-in flag ---
         if (cc.isGrounded && velocity.y < 0f)
             velocity.y = -2f; // tiny downward force to keep grounded
@@ -86,30 +83,31 @@ public class SimpleController : MonoBehaviour {
             Debug.Log("JUMMPING ATTEMPT");
         }
 
+        // --- Crouch ---
         bool wantCrouch = Input.GetKey(crouchKey);
-
-        // if trying to stand, ensure headroom; otherwise stay crouched
-        bool canStand = HasHeadroom();
-        bool crouched = wantCrouch || !canStand;
-
-        float targetHeight = crouched ? crouchHeight : standHeight;
-        Vector3 targetCenter = crouched ? new Vector3(0f, targetHeight * 0.5f - cc.skinWidth, 0f)
-                                        : standCenter;
-        float targetCam = crouched ? crouchCamY : standCamY;
+        float targetHeight = wantCrouch ? crouchHeight : standHeight;
+        Vector3 targetCenter = wantCrouch 
+            ? new Vector3(0f, targetHeight * 0.5f - cc.skinWidth, 0f) 
+            : standCenter;
+        float targetCamY = wantCrouch ? crouchCamY : standCamY;
 
         // smooth transitions
         cc.height = Mathf.Lerp(cc.height, targetHeight, Time.deltaTime * crouchLerp);
         cc.center = Vector3.Lerp(cc.center, targetCenter, Time.deltaTime * crouchLerp);
-        var camLocal = cameraHolder.localPosition;
-        camLocal.y = Mathf.Lerp(camLocal.y, targetCam, Time.deltaTime * crouchLerp);
+        Vector3 camLocal = cameraHolder.localPosition;
+        camLocal.y = Mathf.Lerp(camLocal.y, targetCamY, Time.deltaTime * crouchLerp);
         cameraHolder.localPosition = camLocal;
 
-        // slow movement while crouched
-        speed *= crouched ? crouchSpeedMult : 1f;
-
+        // crouch slows speed
+        if (cc.isGrounded && Input.GetKey(crouchKey))
+        {
+            speed *= wantCrouch ? crouchSpeedMult : 1f;
+            horizontal = inputDir * speed;
+        }
+        
         if (Input.GetKey(crouchKey))
-        { 
-            Debug.Log("CROUCH ATTEMPT");
+        {
+            Debug.Log("Using crouchKey: " + crouchKey);
         }
 
 
