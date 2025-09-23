@@ -7,7 +7,7 @@ public class SimpleController : MonoBehaviour {
     [Header("Move / Look")]
     public float moveSpeed = 6f;
     public float mouseSensitivity = 3f;
-    public float sprintSpeed = 3f;
+    public float sprintSpeed = 2f;
     public Transform cameraHolder;
 
     [Header("Jump / Gravity")]
@@ -35,27 +35,42 @@ public class SimpleController : MonoBehaviour {
         // --- Movement (WASD) ---
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
-        Vector3 move = (transform.right * h + transform.forward * v).normalized;
-        cc.Move(move * moveSpeed * Time.deltaTime);
+        Vector3 inputDir = (transform.right * h + transform.forward * v).normalized;
+        float speed = moveSpeed * (Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : 1f);
+        Vector3 horizontal = inputDir * speed;
 
         // -- Sprinting --
-        if (Input.GetKey(KeyCode.LeftShift))
-            cc.Move(move * (moveSpeed + sprintSpeed) * Time.deltaTime);
+        /*if (Input.GetKey(KeyCode.LeftShift))
+            cc.Move(move * sprintSpeed * Time.deltaTime);*/
 
         // --- Ground snap using built-in flag ---
         if (cc.isGrounded && velocity.y < 0f)
             velocity.y = -2f; // tiny downward force to keep grounded
 
+        if (cc.isGrounded)
+        { 
+            Debug.Log("GROUNDED");
+        }
+
         // --- Jump (Space) ---
-        if (cc.isGrounded && Input.GetButtonDown("Jump")) {
+        if (cc.isGrounded && Input.GetButtonDown("Jump"))
+        {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+        }
+
+        if (Input.GetButtonDown("Jump"))
+        { 
+            Debug.Log("JUMMPING ATTEMPT");
         }
 
         // --- Gravity ---
         velocity.y += gravity * Time.deltaTime;
-        cc.Move(velocity * Time.deltaTime);
+
+        Vector3 final = (horizontal + new Vector3(0f, velocity.y, 0f)) * Time.deltaTime;
+        cc.Move(final);
     }
 }
+
 
 
 
